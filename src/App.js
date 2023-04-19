@@ -2,6 +2,7 @@ import React from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { useSpeechSynthesis } from "react-speech-kit";
 import { useState } from "react";
 import "./App.css";
 
@@ -16,6 +17,7 @@ function App() {
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
+  const { speak } = useSpeechSynthesis();
 
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
@@ -39,8 +41,12 @@ function App() {
     fetch(uri, { headers: { Authorization: auth } })
       .then((res) => res.json())
       .then((res) => {
-        setBuzzer(JSON.parse(res["traits"]["buzzer_sound"][0]["value"]));
-        setEmail(JSON.parse(res["traits"]["email_notification"][0]["value"]));
+        if (res["intents"][0]["name"] === "get_stats") {
+          speak({ text: "Ouch! The cat harassed me 9 times today!" });
+        } else {
+          setBuzzer(JSON.parse(res["traits"]["buzzer_sound"][0]["value"]));
+          setEmail(JSON.parse(res["traits"]["email_notification"][0]["value"]));
+        }
         setLoading(false);
       });
   };
@@ -167,8 +173,9 @@ function App() {
               Start speaking
             </button>
             <p className="mt-5">
-              Example: "Good night! Don't bother me at night."
+              Examples: "Good night! Don't bother me at night."
             </p>
+            <p>"How is my cat behaving today?"</p>
           </>
         )}
       </div>
